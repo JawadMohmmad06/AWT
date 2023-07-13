@@ -5,12 +5,16 @@ import { AdminEntity, OTP_Entity } from './admin.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AdminDTO } from './admin.dto';
+import { AttendeeDTO } from 'src/attende/attendee.dto';
+import { AttendeeEntity } from 'src/attende/attendee.entity';
 
 @Injectable()
 export class AdminService {
   constructor(
     @InjectRepository(AdminEntity) private adminRepo: Repository<AdminEntity>,
     @InjectRepository(OTP_Entity) private otpRepo: Repository<OTP_Entity>,
+    @InjectRepository(AttendeeEntity)
+    private attendeeRepo: Repository<AttendeeEntity>,
     private readonly mailerService: MailerService,
   ) {}
   async adminRegistration(data: AdminDTO): Promise<AdminEntity> {
@@ -158,12 +162,32 @@ export class AdminService {
     }
   }
 
-  async updateProfile(data: AdminDTO) {
-    const result = await this.adminRepo.update({ email: data.email }, data);
+  async updateProfile(data: AdminDTO, email: string) {
+    console.log(data, 'email');
+    const result = await this.adminRepo.update({ email }, data);
+    console.log(result, 'result');
     if (!result) {
       return { message: 'Profile not updated', isProfileUpdated: false };
     } else {
       return { message: 'Profile updated', isProfileUpdated: true };
+    }
+  }
+
+  async addAttendee(data: AttendeeDTO) {
+    try {
+      const salt = await bcrypt.genSalt();
+      const hashedPass = await bcrypt.hash(data.password, salt);
+
+      const result = await this.attendeeRepo.save({
+        ...data,
+        password: hashedPass,
+      });
+      return result;
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'Attendee data is not saved in database',
+        { cause: new Error(), description: error },
+      );
     }
   }
 }

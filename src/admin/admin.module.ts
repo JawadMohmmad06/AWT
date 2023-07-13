@@ -5,6 +5,7 @@ import { AdminEntity, OTP_Entity } from './admin.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { ConfigModule } from '@nestjs/config';
+import { AttendeeEntity } from 'src/attende/attendee.entity';
 @Module({
   imports: [
     ConfigModule.forRoot(),
@@ -21,7 +22,7 @@ import { ConfigModule } from '@nestjs/config';
         tls: { rejectUnauthorized: false },
       },
     }),
-    TypeOrmModule.forFeature([AdminEntity, OTP_Entity]),
+    TypeOrmModule.forFeature([AdminEntity, OTP_Entity, AttendeeEntity]),
   ],
   controllers: [AdminController],
   providers: [AdminService],

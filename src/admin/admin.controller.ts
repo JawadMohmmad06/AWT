@@ -15,6 +15,7 @@ import { AdminService } from './admin.service';
 import { AdminEntity } from './admin.entity';
 import { AdminDTO } from './admin.dto';
 import { SessionGuard } from './session.guard';
+import { AttendeeDTO } from 'src/attende/attendee.dto';
 
 @Controller('admin')
 export class AdminController {
@@ -97,12 +98,22 @@ export class AdminController {
 
   @Patch('/updateProfile')
   @UseGuards(SessionGuard)
-  async updateProfile(data: AdminDTO, @Session() session: { email: string }) {
-    const result = await this.adminService.updateProfile(data);
+  async updateProfile(
+    @Body() data: AdminDTO,
+    @Session() session: { email: string },
+  ) {
+    const result = await this.adminService.updateProfile(data, session.email);
     if (result.isProfileUpdated) {
       return result;
     } else {
       throw new HttpException(result, 500);
     }
+  }
+
+  // Attendee relate api
+  @Post('/addAttendee')
+  @UseGuards(SessionGuard)
+  async addAttendee(@Body() data: AttendeeDTO) {
+    return this.adminService.addAttendee(data);
   }
 }
