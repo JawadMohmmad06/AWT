@@ -16,7 +16,8 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { MulterError, diskStorage } from 'multer';
 import { extname } from 'path';
-import { AttendeeDTO } from 'src/attende/attendee.dto';
+import { AttendeeEntity } from 'src/Attendee/attendee.entity';
+import { EventDTO } from 'src/event/event.dto';
 import { AdminDTO } from './admin.dto';
 import { AdminEntity } from './admin.entity';
 import { AdminService } from './admin.service';
@@ -151,7 +152,35 @@ export class AdminController {
   // Attendee relate api
   @Post('/addAttendee')
   @UseGuards(SessionGuard)
-  async addAttendee(@Body() data: AttendeeDTO) {
+  @UseInterceptors(
+    FileInterceptor('PhotoName', {
+      fileFilter: (req, file, cb) => {
+        if (file.mimetype.match(/\/(jpg|jpeg|png)$/)) {
+          cb(null, true);
+        } else {
+          cb(new MulterError('LIMIT_UNEXPECTED_FILE', 'image'), false);
+        }
+      },
+      limits: { fileSize: 2097152 },
+      storage: diskStorage({
+        destination: './uploads',
+        filename: function (req, file, cb) {
+          const ext = extname(file.originalname);
+          const fileName: string =
+            file.originalname
+              .replace(ext, '')
+              .toLowerCase()
+              .split(' ')
+              .join('-') +
+            '-' +
+            Date.now();
+          req.body.PhotoName = fileName + ext;
+          cb(null, fileName + ext);
+        },
+      }),
+    }),
+  )
+  async addAttendee(@Body() data: AttendeeEntity) {
     return this.adminService.addAttendee(data);
   }
 
@@ -163,6 +192,42 @@ export class AdminController {
       return result;
     } else {
       throw new HttpException(result, 500);
+    }
+  }
+
+  @Post('/addEventOrganizer')
+  @UseInterceptors(
+    FileInterceptor('Photo', {
+      fileFilter: (req, file, cb) => {
+        if (file.originalname.match(/^.*\.(jpg|webp|png|jpeg)$/))
+          cb(null, true);
+        else {
+          cb(new MulterError('LIMIT_UNEXPECTED_FILE', 'image'), false);
+        }
+      },
+
+      limits: { fileSize: 300000 },
+
+      storage: diskStorage({
+        destination: './uploads',
+
+        filename: function (req, file, cb) {
+          req.body.Photo = Date.now() + file.originalname;
+          cb(null, Date.now() + file.originalname);
+        },
+      }),
+    }),
+  )
+  async addEventOrganize(
+    @Body() events: EventDTO,
+    @UploadedFile() Photo: Express.Multer.File,
+  ) {
+    const result = await this.adminService.addEventOrganizer(events);
+
+    if (result?.isAdded) {
+      return result;
+    } else {
+      throw new HttpException({ message: 'There is server error' }, 500);
     }
   }
 }

@@ -1,12 +1,14 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { MailerService } from '@nestjs-modules/mailer';
-import * as bcrypt from 'bcrypt';
-import { AdminEntity, OTP_Entity } from './admin.entity';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import * as bcrypt from 'bcrypt';
+import { AttendeeEntity } from 'src/Attendee/attendee.entity';
+import { EventDTO } from 'src/event/event.dto';
+import { EventOrganizerEntity } from 'src/event/eventorganizer.entity';
+import { EventSecretEntity } from 'src/eventsecret/eventsecret.entity';
 import { Repository } from 'typeorm';
 import { AdminDTO } from './admin.dto';
-import { AttendeeDTO } from 'src/attende/attendee.dto';
-import { AttendeeEntity } from 'src/attende/attendee.entity';
+import { AdminEntity, OTP_Entity } from './admin.entity';
 
 @Injectable()
 export class AdminService {
@@ -15,6 +17,10 @@ export class AdminService {
     @InjectRepository(OTP_Entity) private otpRepo: Repository<OTP_Entity>,
     @InjectRepository(AttendeeEntity)
     private attendeeRepo: Repository<AttendeeEntity>,
+    @InjectRepository(EventOrganizerEntity)
+    private eventorganizerRepository: Repository<EventOrganizerEntity>,
+    @InjectRepository(EventSecretEntity)
+    private eventsecretRepository: Repository<EventSecretEntity>,
     private readonly mailerService: MailerService,
   ) {}
   async adminRegistration(data: AdminDTO): Promise<AdminEntity> {
@@ -173,14 +179,14 @@ export class AdminService {
     }
   }
 
-  async addAttendee(data: AttendeeDTO) {
+  async addAttendee(data: AttendeeEntity) {
     try {
       const salt = await bcrypt.genSalt();
-      const hashedPass = await bcrypt.hash(data.password, salt);
+      const hashedPass = await bcrypt.hash(data.Password, salt);
 
       const result = await this.attendeeRepo.save({
         ...data,
-        password: hashedPass,
+        Password: hashedPass,
       });
       return result;
     } catch (error) {
@@ -192,11 +198,42 @@ export class AdminService {
   }
 
   async deleteAddendee(id: number) {
-    const result = await this.attendeeRepo.delete({ id });
+    const result = await this.attendeeRepo.delete({ Id: id });
     if (!result) {
       return { message: 'Attendee not deleted', isDeleted: false };
     } else {
       return { message: 'Attendee deleted', isDeleted: true };
+    }
+  }
+
+  //event organizer related service
+  async addEventOrganizer(eventorganizer: EventDTO) {
+    const secretRepositoryData = {
+      Username: eventorganizer.Username,
+      Password: eventorganizer.Password,
+    };
+
+    const secretResults = await this.eventsecretRepository.save(
+      secretRepositoryData,
+    );
+
+    if (secretResults.Id) {
+      const parentTable = {
+        Name: eventorganizer.Name,
+        Email: eventorganizer.Email,
+        DOB: eventorganizer.DOB,
+        Address: eventorganizer.Address,
+        Phonenumber: eventorganizer.Phonenumber,
+        Photo: eventorganizer.Photo,
+        eventsecretid: secretResults.Id,
+      };
+
+      const result = await this.eventorganizerRepository.save(parentTable);
+      if (!result) {
+        return { message: 'Event Organizer not added', isAdded: false };
+      } else {
+        return { result, message: 'Event Organizer added', isAdded: true };
+      }
     }
   }
 }

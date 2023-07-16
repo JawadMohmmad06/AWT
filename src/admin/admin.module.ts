@@ -1,11 +1,14 @@
-import { Module } from '@nestjs/common';
-import { AdminController } from './admin.controller';
-import { AdminService } from './admin.service';
-import { AdminEntity, OTP_Entity } from './admin.entity';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { MailerModule } from '@nestjs-modules/mailer';
+import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { AttendeeEntity } from 'src/attende/attendee.entity';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { AttendeeEntity } from 'src/Attendee/attendee.entity';
+import { CreateEventsEntity } from 'src/event/eventcreate.entity';
+import { EventOrganizerEntity } from 'src/event/eventorganizer.entity';
+import { EventSecretEntity } from 'src/eventsecret/eventsecret.entity';
+import { AdminController } from './admin.controller';
+import { AdminEntity, OTP_Entity } from './admin.entity';
+import { AdminService } from './admin.service';
 @Module({
   imports: [
     ConfigModule.forRoot(),
@@ -22,7 +25,14 @@ import { AttendeeEntity } from 'src/attende/attendee.entity';
         tls: { rejectUnauthorized: false },
       },
     }),
-    TypeOrmModule.forFeature([AdminEntity, OTP_Entity, AttendeeEntity]),
+    TypeOrmModule.forFeature([
+      AdminEntity,
+      OTP_Entity,
+      AttendeeEntity,
+      EventOrganizerEntity,
+      EventSecretEntity,
+      CreateEventsEntity,
+    ]),
   ],
   controllers: [AdminController],
   providers: [AdminService],
