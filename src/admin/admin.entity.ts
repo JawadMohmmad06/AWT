@@ -23,6 +23,9 @@ export class AdminEntity {
 
   @Column()
   address: string;
+
+  @Column()
+  imageUrl: string;
 }
 
 @Entity('OTP')

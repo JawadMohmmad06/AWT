@@ -190,4 +190,13 @@ export class AdminService {
       );
     }
   }
+
+  async deleteAddendee(id: number) {
+    const result = await this.attendeeRepo.delete({ id });
+    if (!result) {
+      return { message: 'Attendee not deleted', isDeleted: false };
+    } else {
+      return { message: 'Attendee deleted', isDeleted: true };
+    }
+  }
 }

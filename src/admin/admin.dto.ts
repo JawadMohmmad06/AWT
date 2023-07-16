@@ -31,6 +31,9 @@ export class AdminDTO {
 
   @IsString({ message: 'Address must be a string' })
   address: string;
+
+  @IsString({ message: 'Image url must be a string' })
+  imageUrl: string;
 }
 
 export class OTP_DTO {
