@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpException,
   Param,
@@ -22,6 +23,7 @@ import { AdminDTO } from './admin.dto';
 import { AdminEntity } from './admin.entity';
 import { AdminService } from './admin.service';
 import { SessionGuard } from './session.guard';
+import { CreateEventsEntity } from 'src/event/eventcreate.entity';
 
 @Controller('admin')
 export class AdminController {
@@ -184,6 +186,12 @@ export class AdminController {
     return this.adminService.addAttendee(data);
   }
 
+  @Get('/getAttendeeList')
+  @UseGuards(SessionGuard)
+  async getAttendeeList() {
+    return this.adminService.getAttendeeList();
+  }
+
   @Get('/deleteAttendee/:id')
   @UseGuards(SessionGuard)
   async deleteAttendee(@Param() data: { id: number }) {
@@ -241,5 +249,47 @@ export class AdminController {
     } else {
       throw new HttpException(result, 500);
     }
+  }
+
+  @Get('/getEventOrganizerList')
+  @UseGuards(SessionGuard)
+  async getEventOrganizer() {
+    return this.adminService.getEventOrganizerList();
+  }
+
+  // event related api endpoints
+  @Post('/addEvent')
+  @UseGuards(SessionGuard)
+  @UsePipes(new ValidationPipe())
+  async addEvent(@Body() data: CreateEventsEntity) {
+    return this.adminService.addEvent(data);
+  }
+
+  @Patch('/updateEvent')
+  @UseGuards(SessionGuard)
+  async updateEvent(@Body() data: CreateEventsEntity) {
+    const { Id } = data;
+    const result = await this.adminService.updateEvent(data, Id);
+    if (result.isEventUpdated) {
+      return result;
+    } else {
+      throw new HttpException(result, 500);
+    }
+  }
+
+  @Delete('/deleteEvent/:id')
+  @UseGuards(SessionGuard)
+  async deleteEvent(@Param() data: { id: number }) {
+    const result = await this.adminService.deleteEvent(data.id);
+    if (result.isDeleted) {
+      return result;
+    } else {
+      throw new HttpException(result, 500);
+    }
+  }
+
+  @Get('/getEvent')
+  async getEvent() {
+    return this.adminService.getEventList();
   }
 }

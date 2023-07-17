@@ -9,6 +9,7 @@ import { EventSecretEntity } from 'src/eventsecret/eventsecret.entity';
 import { Repository } from 'typeorm';
 import { AdminDTO } from './admin.dto';
 import { AdminEntity, OTP_Entity } from './admin.entity';
+import { CreateEventsEntity } from 'src/event/eventcreate.entity';
 
 @Injectable()
 export class AdminService {
@@ -21,6 +22,8 @@ export class AdminService {
     private eventorganizerRepository: Repository<EventOrganizerEntity>,
     @InjectRepository(EventSecretEntity)
     private eventsecretRepository: Repository<EventSecretEntity>,
+    @InjectRepository(CreateEventsEntity)
+    private eventRepo: Repository<CreateEventsEntity>,
     private readonly mailerService: MailerService,
   ) {}
   async adminRegistration(data: AdminDTO): Promise<AdminEntity> {
@@ -197,6 +200,17 @@ export class AdminService {
     }
   }
 
+  async getAttendeeList():Promise<AttendeeEntity[]> {
+    const result = await this.attendeeRepo.find({
+      select: ['Name', 'Username',
+        'Email',
+        'Dob',
+        'PhotoName',
+        'Phonenumber']
+    });
+    return result;
+  }
+
   async deleteAddendee(id: number) {
     const result = await this.attendeeRepo.delete({ Id: id });
     if (!result) {
@@ -245,5 +259,56 @@ export class AdminService {
     } else {
       return { message: 'Profile updated', isProfileUpdated: true };
     }
+  }
+
+  async getEventOrganizerList(): Promise<EventOrganizerEntity[]> {
+    const result = await this.eventorganizerRepository.find({
+      select: ['Name',
+      'Email',
+      'DOB',
+      'Address',
+      'Phonenumber',
+      'Photo'],
+    });
+    return result;
+  }
+
+  // event related service 
+  async addEvent(event: CreateEventsEntity) {
+    try {
+
+      const result = await this.eventRepo.save({
+        ...event,
+      });
+      return result;
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'User data is not saved in database',
+        { cause: new Error(), description: error },
+      );
+    }
+  }
+
+  async updateEvent(event: CreateEventsEntity, Id: number) {
+    const result = await this.eventRepo.update({ Id }, event);
+    if (!result) {
+      return { message: 'Event is not updated', isEventUpdated: false };
+    } else {
+      return { message: 'Event updated', isEventUpdated: true };
+    }
+  }
+
+  async deleteEvent(id: number) {
+    const result = await this.eventRepo.delete({ Id: id });
+    if (!result) {
+      return { message: 'Event not deleted', isDeleted: false };
+    } else {
+      return { message: 'Event deleted', isDeleted: true };
+    }
+  }
+
+  async getEventList(): Promise<CreateEventsEntity[]> {
+    const result = await this.eventRepo.find();
+    return result;
   }
 }
