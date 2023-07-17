@@ -236,4 +236,14 @@ export class AdminService {
       }
     }
   }
+  async updateEventOrganizer(data: EventDTO, Email: string) {
+    console.log(data, 'email');
+    const result = await this.eventorganizerRepository.update({ Email }, data);
+    console.log(result, 'result');
+    if (!result) {
+      return { message: 'Profile not updated', isProfileUpdated: false };
+    } else {
+      return { message: 'Profile updated', isProfileUpdated: true };
+    }
+  }
 }

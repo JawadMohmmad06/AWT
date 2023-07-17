@@ -2,6 +2,7 @@ import { IsDateString, IsNotEmpty, IsNumber, IsString } from 'class-validator';
 import { AttendeeEntity } from 'src/Attendee/attendee.entity';
 // import { EventEntity } from 'src/Event/event.entity';
 import { FeedbackEntity } from 'src/Feedback/feedback.entity';
+import { CreateEventsEntity } from 'src/event/eventcreate.entity';
 import {
   Column,
   Entity,
@@ -54,6 +55,6 @@ export class BookedEventEntity {
   Attendee: AttendeeEntity;
   @OneToOne(() => FeedbackEntity, (feedback) => feedback.BookedEvent)
   Feedback: FeedbackEntity;
-  // @ManyToOne(() => EventEntity, (evenEntity) => evenEntity.BookedEvents)
-  // Event: EventEntity;
+  @ManyToOne(() => CreateEventsEntity, (evenEntity) => evenEntity.BookEvents)
+  Event: CreateEventsEntity;
 }

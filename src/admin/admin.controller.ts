@@ -230,4 +230,16 @@ export class AdminController {
       throw new HttpException({ message: 'There is server error' }, 500);
     }
   }
+
+  @Patch('/updateEventOrganizer')
+  @UseGuards(SessionGuard)
+  async updateEventOrganizer(@Body() data: EventDTO) {
+    const { Email } = data;
+    const result = await this.adminService.updateEventOrganizer(data, Email);
+    if (result.isProfileUpdated) {
+      return result;
+    } else {
+      throw new HttpException(result, 500);
+    }
+  }
 }
